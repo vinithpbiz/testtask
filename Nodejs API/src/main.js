@@ -17,7 +17,7 @@ cors(app)
 
 app.use("/api", apiRouter);
 
-app.get("/", (req, res) => res.status(200).send("Welcome to Arthmate APIs! Work in progress.....please be patient."));
+app.get("/", (req, res) => res.status(200).send("Welcome to NODE APIs!"));
 
 app.use((req, res, next) => {
   const error = new Error(`404 Not Found - ${req.originalUrl}`);
