@@ -3,6 +3,7 @@ const response = require('../../../helpers/api-response/response.function')
 const {validateRoleSchema, validateUserSchema, validateLoginSchema} = require('./user.validation')
 const bcrypt = require('bcrypt')
 const {signaccesstoken} = require('../../../helpers/jwt.helper')
+const mongoose = require('mongoose')
 
 const addrole = async (req,res)=>{ 
   try {
@@ -31,7 +32,11 @@ const register = async (req,res)=>{
       let isvalidated = await validateUserSchema(req.body)
       if(isvalidated.error) return response.badRequestResponse(res,isvalidated.error)
 
-      let data = {email : req.body.email}
+      let data = {role_id : req.body.role_id}
+      let isrole = await services.readOneRole(data)
+      if(!isrole) return response.badRequestResponse(res, "role already exists")
+
+      data = {email : req.body.email}
       let isuser = await services.readOneUser(data)
       if(isuser) return response.badRequestResponse(res, "user already exists")
       req.body.password = await bcrypt.hash(req.body.password,10)
@@ -95,7 +100,10 @@ const getuser = async (req, res)=>{
     }
     let isread = await services.searchuser(data)
     if(!isread) return response.notFoundResponse(res, "no user found")
-    return response.successResponse(res, isread)
+    let userdata = {
+      users: isread
+    }
+    return response.successResponse(res, userdata)
   } catch (error) {
     console.log(error)
   }
@@ -103,17 +111,22 @@ const getuser = async (req, res)=>{
 
 const searchuser = async (req, res)=>{
   try {
-    let data = {
-      name: req.params.role
-    }
-    let readrole = await services.readOneRole(data)
+    let rolearr = []
+    let readrole = await services.readallRole()
     if(!readrole) return response.notFoundResponse(res, "role not found")
+    readrole.map(item =>{
+      rolearr.push(item.role_id)
+    })
     data = {
-      role_id: readrole.role_id
+      rolearr
     }
     let isread =await services.countuser(data)
     if(!isread) return response.notFoundResponse(res, "user not found")
-    return response.successResponse(res, isread)
+    let newobj = {}
+    isread.map(item =>{
+      newobj[item.role] = item.total 
+    })
+    return response.successResponse(res, newobj)
   } catch (error) {
     console.log(error)
   }

@@ -1,7 +1,7 @@
 {
-  "name": "btwitter",
+  "name": "btest",
   "version": "1.0.0",
-  "description": "basic twitter",
+  "description": "basic test",
   "main": "index.js",
   "scripts": {
     "test": "nodemon ./src/main.js"

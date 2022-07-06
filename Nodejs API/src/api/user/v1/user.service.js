@@ -1,4 +1,5 @@
 const {userModel, roleModel} = require("../../../../database/models/models.model");
+const mongoose = require('mongoose')
 
 const addRole = async (data)=>{
     try {
@@ -13,6 +14,15 @@ const addRole = async (data)=>{
 const readOneRole = async (data)=>{
     try {
         let issave = await roleModel.findOne(data)
+        if(issave) return issave
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const readallRole = async (data)=>{
+    try {
+        let issave = await roleModel.find()
         if(issave) return issave
     } catch (error) {
         console.log(error)
@@ -59,7 +69,26 @@ const searchrole = async (data)=>{
 
 const countuser = async (data)=>{
     try {
-        let isfind = await userModel.count(data)
+        let agg =  [
+            {
+                "$lookup": {
+                    "from": "roles",
+                    "localField": "role_id",
+                    "foreignField": "role_id",
+                    "as": "resultingTagsArray"
+                }
+            },
+            {"$group":{
+                _id: "$resultingTagsArray.name",
+                total: {$sum: 1}
+            }},
+            {"$project":{
+                _id : 0,
+                role : { $first: "$_id" },
+                total: 1
+            }}
+          ];
+        let isfind = await userModel.aggregate(agg)
         if(isfind) return isfind
     } catch (error) {
         console.log(error)
@@ -73,5 +102,6 @@ module.exports = {
     readOneUser,
     searchuser,
     searchrole,
-    countuser
+    countuser,
+    readallRole
 }
